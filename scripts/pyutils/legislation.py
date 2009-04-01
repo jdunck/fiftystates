@@ -1,6 +1,7 @@
 from optparse import make_option, OptionParser
 import datetime
 import csv
+import os
 
 class ScrapeError(Exception):
     """
@@ -88,6 +89,7 @@ class LegislationScraper(object):
         self.verbose = False
         if not hasattr(self, 'state'):
             raise Exception('LegislationScrapers must have a state attribute')
+        self.ensure_root_dirs()
 
         bill_filename = 'data/%s/legislation.csv' % self.state
         self.bill_csv = csv.DictWriter(open(bill_filename, 'w'), 
@@ -107,6 +109,17 @@ class LegislationScraper(object):
         self.action_csv = csv.DictWriter(open(action_filename, 'w'),
                                          self.action_fields,
                                          extrasaction='ignore')
+
+    def ensure_root_dirs(self):
+        state_path = os.path.join("data", self.state)
+        if not os.path.exists("data"):
+            os.mkdir("data")
+        if not os.path.isdir("data"):
+            raise EnvironmentError, "%s directory is required." % state_path
+        if not os.path.exists(state_path):
+            os.mkdir(state_path)
+        if not os.path.isdir(state_path):
+            raise EnvironmentError, "%s directory is required." % state_path
 
     def add_bill(self, bill_chamber, bill_session, bill_id, bill_name, **kwargs):
         row = {'bill_state': self.state, 'bill_chamber': bill_chamber,
